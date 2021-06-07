@@ -64,3 +64,43 @@ kubectl expose deploy api \
 
 kubectl delete -f k8s-deployment.yaml
 ```
+
+## skaffold.yamlの生成
+
+```
+skaffold init
+```
+
+`? Do you want to write this configuration to skaffold.yaml?`と聞かれるので`yes`で書き込む。  
+
+## build
+ここで、`Dockerfile`の内容をもとにImageが作成される。  
+
+```
+skaffold build
+```
+
+## 開発開始
+```
+skaffold dev
+```
+
+なお、URLは以下のように取得する。  
+
+```
+minikube service <service> --url
+```
+
+ここでは、
+
+```
+minikube service api --url
+```
+
+戻ってきたURLに対してcurlなどを行って動作確認を行う。  
+
+```
+curl $(minikube service api --url)\?name\=sawa
+```
+
+`main.go`を書き換えると自動的にbuildが実行され、k8sクラスタにデプロイされる。  
