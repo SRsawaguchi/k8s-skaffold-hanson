@@ -36,3 +36,31 @@ COPY --from=builder /app .
 
 これを使うと、複数のファイルでコンテナを生成するスクリプトを書かなくてもいいし、Dockerfileも1つにまとめられる。  
 
+
+## k8s resource: pod.yamlの作成
+
+```
+kubectl create deployment \
+    --image skaffold-example \
+    --port 8080 \
+    --replicas=1 \
+    api \
+    --dry-run=client \
+    -o yaml > k8s-deployment.yaml
+```
+
+※`expose`は対象の`deployment`が存在しない場合`dry-run`でもエラーになる。  
+そこで、一度deploymentを`apply`してから以下を実行する。  
+
+```
+kubectl apply -f k8s-deployment.yaml
+
+kubectl expose deploy api \
+    --port 80 \
+    --target-port 8080 \
+    --type NodePort \
+    --dry-run=client \
+    -o yaml > k8s-nodeport.yaml
+
+kubectl delete -f k8s-deployment.yaml
+```
