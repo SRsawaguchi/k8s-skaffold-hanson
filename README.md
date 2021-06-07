@@ -104,3 +104,25 @@ curl $(minikube service api --url)\?name\=sawa
 ```
 
 `main.go`を書き換えると自動的にbuildが実行され、k8sクラスタにデプロイされる。  
+
+
+## exec user process caused: no such file or directoryについて
+goで`net/http`を利用していると、`skaffold dev`をしたときにこの不具合が起こる。    
+
+```
+ standard_init_linux.go:219: exec user process caused: no such file or directory
+ ```
+
+ これはビルド時に環境変数`CGO_ENABLED`を`0`にすれば解決する。  
+ netパッケージはデフォルトではcgoが必須であるが、それは通常OSが通信を仲介するから。  
+ Alpineでは、それに必要なライブラリが存在しないため、エラーになる。  
+ ※単一で動作するのではなくて、netに関しては動的にリンクされるということ。  
+
+ しかし、`CGO_ENABLED=0`の状態だと、pure goのパッケージを利用する。  
+ そのため、この問題を回避できる。  
+
+ ```
+ The net package requires cgo by default because the host operating system must in general mediate network call setup. On some systems, though, it is possible to use the network without cgo, and useful to do so, for instance to avoid dynamic linking. The new build tag netgo (off by default) allows the construction of a net package in pure Go on those systems where it is possible.
+ ```
+ https://golang.org/doc/go1.2
+
